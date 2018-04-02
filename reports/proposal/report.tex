@@ -17,8 +17,8 @@
 
 \begin{document}
 
-\section*{1 Goal}
-Use machine learning for foreground-background classification in high-resolution brain scans.
+\section*{1 Abstract/Goal}
+Being in the multicore and machine learning era, it is important for our machine learning algorithms to take advantage of the potential speed up through the use of paralleling tasks on multicore computers and distributed systems. Using Google's Map Reduce paradigm, we will look to analyze the speed up of a variety of machine learning algorithms for foreground-background classification in high-resolution brain scans.
 
 \section*{2 The Data}
 The dataset\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} is composed of csv files with the intensity of pixels in a 3D image.  The last value is the label for the whole image. On each line there should be 21*21*7+1 values.
@@ -51,5 +51,12 @@ other two (typically 20-10 percet for each). The following steps will be repeate
 We can use accuracy (ACC) for the final evaluation. In the final evaluation test set there are about 0.0057 percent foreground and 99.9943 percent background pixels.\\
 
 The output file will be a single file with a single column and as many rows as there are test points. We'll replace all “?” labels with either 1 or 0 and remove all columns except for the label column. All predictions will be stored in plain text, i.e., exactly as strings “1” or “0” (without the quotation marks).
+
+
+\begin{thebibliography}{9}
+\bibitem{andrewng} 
+Map-Reduce for Machine Learning on Multicore,
+\\\texttt{http://www.andrewng.org/portfolio/map-reduce-for-machine-learning-on-multicore/}
+\end{thebibliography}
 
 \end{document}
