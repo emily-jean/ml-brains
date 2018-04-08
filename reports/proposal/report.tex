@@ -78,6 +78,10 @@ We can use accuracy (ACC) for the final evaluation. In the final evaluation test
 
 The output file will be a single file with a single column and as many rows as there are test points. We'll replace all “?” labels with either 1 or 0 and remove all columns except for the label column. All predictions will be stored in plain text, i.e., exactly as strings “1” or “0” (without the quotation marks).
 
+\section*{4 MapReduce vs. Naive Parallelism}
+MapReduce orchestrates distributing work across a distributed system, which naively could be eschewed in favor of directly implementing a multi-node program on a system using a framework such as MPI. Such an approach could be asumed to be more efficent, 'cutting out' the middleman (library) between algorithm and networking. However, when one considers that training a real model on a large corpus of data is a many-hour (or day) process, and during that process machines may experience network failures, system failures, data corruption, etcetera, relying on a framework which provides fault tollerance is well worth the tradeoff (and is easier to work with).
+
+This is not to say that MPI is infeasable for extended time runs, given experienced developers with a defined set of failure cases to be aware of. We certainly don't have the authority to say it shouldn't be used, this is a personal decision by our group to focus on algorithms rather than strict performance.
 
 \begin{thebibliography}{9}
 \bibitem{andrewng} 
