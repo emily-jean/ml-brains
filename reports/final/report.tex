@@ -201,6 +201,20 @@ As we can see in the table above, increasing the depth, number of trees, and max
 
 The Confusion matrix \ref{fig:confusionmatrix} shows comparison between proposed baseline and best model accuracy. As it can be observed by the bold numbers in black and green, for the current testing set (the entire image 2 sample data), our model beats the baseline.
 
+\begin{table}[h!]
+\centering
+ \begin{tabular}{||c c c c c c||} 
+ \hline
+Environment & Run time (mins) & Depth & Bins & Trees & Accuracy \\ [0.5ex] 
+ \hline\hline
+Sequential & 15.6  & 15  & -- & 50 & 0.99767 \\
+Parallel & 22.8  & 15  & 512 & 50 & 0.99768 \\[1ex] 
+ \hline
+ \end{tabular}
+ \caption{Accuracy Comparison of Sequential vs. Parallel Environment}
+ \label{tab:accuracy-comparison}
+\end{table}
+
 
 \section*{5 Conclusion}
 
@@ -208,6 +222,10 @@ The Confusion matrix \ref{fig:confusionmatrix} shows comparison between proposed
 \newpage
 
 \begin{thebibliography}{9}
+
+\bibitem{andrewng} 
+Map-Reduce for Machine Learning on Multicore,
+\\\texttt{http://www.andrewng.org/portfolio/map-reduce-for-machine-learning-on-multicore/}
 
 \bibitem{amazonemr} 
 Apache Spark - Amazon EMR,
@@ -247,6 +265,10 @@ EMR Add Steps
 Decision Tree
 \\\texttt{https://spark.apache.org/docs/2.2.0/mllib-decision-tree.html}
 
+\bibitem{decisiontree} 
+Random Forest Classifier
+\\\texttt{http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html}
+
 \end{thebibliography}
 
 \newpage
@@ -263,7 +285,8 @@ Decision Tree
 
 \section{Foreground Analysis}
 \begin{figure}[!h]
-  \includegraphics[width=0.65\linewidth]{foreground-xy-1}
+  \includegraphics[width=0.5\linewidth]{foreground-xy-1}
+  \includegraphics[width=0.5\linewidth]{background-xy-0}
   \label{fig:foreground-xy-1}
 \end{figure}
 
