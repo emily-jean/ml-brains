@@ -30,34 +30,6 @@
   tabsize=3
 }
 
-\usepackage[T1]{fontenc}
-\usepackage{beramono}
-\usepackage{listings}
-\usepackage{xcolor}
-
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
-
-\lstdefinestyle{myScalastyle}{
-  frame=tb,
-  language=scala,
-  aboveskip=3mm,
-  belowskip=3mm,
-  showstringspaces=false,
-  columns=flexible,
-  basicstyle={\small\ttfamily},
-  numbers=none,
-  numberstyle=\tiny\color{gray},
-  keywordstyle=\color{blue},
-  commentstyle=\color{dkgreen},
-  stringstyle=\color{mauve},
-  frame=single,
-  breaklines=true,
-  breakatwhitespace=true,
-  tabsize=3,
-}
-
 \graphicspath{ {images/} }
 \everymath{\displaystyle}
 
@@ -109,7 +81,7 @@ pixel (9, 9, 9), n[1] the brightness of (9, 9, 10), n[2] of (9, 9, 11), n[3] of 
 The dataset\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} is composed of several labeled csv files, each consisting of rows that contain an input vector of 21x21x7
 brightness values (intensity) from a 3D image, together with the center pixel's foreground-vs-background label. The last value is the label for the whole image. On each line there are 21*21*7+1 values. Each image, which is a csv file, is roughly 6.5 GB. The labeled data from images 1, 2, 3, 4, and 6 are used to train the most accurate model for predicting the labels in image 5 of the datasets. In the final evaluation set, there are nearly 0.0057\% foreground and 99.99\% background pixel. For classification accuracy, a high value does not necessarily mean the model is performing well. In our case, the "dumb" model that always predicts label 0 for every input will have 99\% accuracy, so any model achieving less than 99\% would not be beating the dumb model. \\
 
-Using the standard way of training and testing a classification model, the labeled data is partitioned into 3 separate sets: training, validation and test data. Uniform random partitioning into training and validation data often works well, but there are datasets, such as this one, where it is not sufficient. Assume we have two labeled records with centers (x,y,z) and (x+1, y+1, and z+1). Uniform sampling could assign (x,y,z) to training and (x+1, y+1, and z+1) to the validation data. The two neighborhoods and labels of the two pixels are highly correlated. The model would overfit to the training data and give overly optimistic validation accuracy from the correlations. To ensure independent training and validation, partitioning by image is needed.
+Using the standard way of training and testing a classification model, the labeled data is partitioned into 3 separate sets: training, validation and test data. Uniform random partitioning into training and validation data often works well, but there are datasets, such as this one, where it is not sufficient. Assume we have two labeled records with centers (x,y,z) and (x+1, y+1, and z+1). Uniform sampling could assign (x,y,z) to training and (x+1, y+1, and z+1) to the validation data. The two neighborhoods and labels of the two pixels are highly correlated. The model would overfit to the training data and give overly optimistic validation accuracy from the correlations. To ensure independent training and validation, partitioning by image is needed.\\
 
 \section*{2 Related Works}
 
@@ -119,7 +91,7 @@ Various models were evaluated in order to receive the highest accuracy of predic
 To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 "foreground" images and 100 "background" images (see Appendix \ref{fig:neuron-slices}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.
 
 \subsection*{3.1 Preprocessing and Feature Extraction}
-Image pre-processing and feature extraction was performed (see Appendix \ref{fig:foreground-xy-1} and \ref{fig:background-xy-0} for the comparison of images of foreground sample and background sample). We looked at the distribution of the data since we knew we were dealing with class imbalance and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
+Image pre-processing and feature extraction was performed (see Appendix \ref{fig:foreground-xy-1} for the comparison of images of foreground sample and background sample). We looked at the distribution of the data since we knew we were dealing with class imbalance and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
 
 \begin{itemize}
 \setlength\itemsep{0.2em}
@@ -203,13 +175,16 @@ The Confusion matrix \ref{fig:confusionmatrix} shows comparison between proposed
 
 \begin{table}[h!]
 \centering
- \begin{tabular}{||c c c c c c||} 
+ \begin{tabular}{||c c c||} 
  \hline
-Environment & Run time (mins) & Depth & Bins & Trees & Accuracy \\ [0.5ex] 
+Model & Run time (mins) & Accuracy \\ [0.5ex] 
  \hline\hline
-Sequential & 15.6  & 15  & -- & 50 & 0.99767 \\
-Parallel & 22.8  & 15  & 512 & 50 & 0.99768 \\[1ex] 
+Random Forest & 22.8  & .99767   \\[1ex] 
  \hline
+ SVM & 0  & 0 \\
+\hline
+KNN & 0  & 0 \\
+\hline
  \end{tabular}
  \caption{Accuracy Comparison of Sequential vs. Parallel Environment}
  \label{tab:accuracy-comparison}
@@ -265,9 +240,30 @@ EMR Add Steps
 Decision Tree
 \\\texttt{https://spark.apache.org/docs/2.2.0/mllib-decision-tree.html}
 
-\bibitem{decisiontree} 
+\bibitem{randomforestclassifier} 
 Random Forest Classifier
 \\\texttt{http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html}
+
+\bibitem{fft} 
+Fast Fourier Transform
+\\\texttt{https://en.m.wikipedia.org/wiki/Fast\_Fourier\_transform}
+
+\bibitem{spark} 
+Spark
+\\\texttt{http://spark.apache.org/}
+
+
+\bibitem{Zaharia} Matei Zaharia. \textsl{An Architecture for Fast and General Data Processing on
+Large Clusters}. Association for Computing Machinery., 2014
+
+\bibitem{learningspark} Holden Karau, Andy Konwinski, Patrick Wendell, and Matei Zaharia. \textsl{Learning Spark: Lightning-Fast Big Data Analytics}. O'Reilly Media Inc., 2015
+
+\bibitem{sparkinaction} Petar Zecevic and Marko Bonaci. \textsl{Spark in Action}. Manning
+Publications., 2016
+
+\bibitem{sparkprogramming} 
+Spark Programming Guide
+\\\texttt{http://spark.apache.org/docs/latest/programming-guide.html}
 
 \end{thebibliography}
 
@@ -283,19 +279,13 @@ Random Forest Classifier
   \label{fig:neuron-slices}
 \end{figure}
 
-\section{Foreground Analysis}
+\newpage
+
+\section{Foreground And Background Analysis}
 \begin{figure}[!h]
   \includegraphics[width=0.5\linewidth]{foreground-xy-1}
   \includegraphics[width=0.5\linewidth]{background-xy-0}
   \label{fig:foreground-xy-1}
-\end{figure}
-
-\newpage
-
-\section{Background Analysis}
-\begin{figure}[!h]
-  \includegraphics[width=0.65\linewidth]{background-xy-0}
-  \label{fig:background-xy-0}
 \end{figure}
 
 \newpage
