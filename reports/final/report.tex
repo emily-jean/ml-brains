@@ -91,12 +91,12 @@ Apache Spark is a well known open source framework that is becoming more readily
 With respect to the dataset being used, the other interesting task at hand is dealing with imbalanced data and since our machine learning algorithms usually assume that the number of items per class is roughly similar. As Bartosz Krawczyk explains in \textit{Learning from Imbalanced Data: Open Challenges and Future Directions} \cite{Krawczyk}, our systems that learn from imbalanced data often have a hard time overcoming these biases without an overly complex system. Over the past several years, ensemble methods are widely used in order to handle class imbalance due to its successful approaches of Boosting and Bagging. Although accuracy is a very common metric for many traditional machine learning applications, in practice it is often observed that 0 is the value of the recall for the minority class. Due to this, other metrics need to be considered, such as a confusion matrix in order to see better performance on the minority class \cite{imbalance}.
 
 \section*{3 Methods}
-Various models were evaluated in order to receive the highest accuracy of predictions on the high resolution brain scans\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} such as Linear SVM, Nearest Neighbor, Decision Tree, Neural Net and AdaBoost. The model that gave us the best results was Random Forest. Random forests is a well-known ensemble method that's used to build predictive classification models. The model creates an entire forest of random uncorrelated decision trees to arrive at the best possible answer. Random Forest looks to reduce a correlation issue, a limitation to bagging trees, through choosing a subsample of the feature space at each split by using a stopping criteria for node splits to prune the trees. Exploration of multiple parameter combinations was explored to achieve the best possible accuracy. \\
+Various models were evaluated in order to receive the highest accuracy of predictions on the high resolution brain scans\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} such as Linear SVM, Nearest Neighbor, Decision Tree, Neural Net and AdaBoost. Different models were trained on a subset of the data: 100 random background samples and 100 random foreground samples. We observed that the decision trees, and the two ensemble methods were the ones that performed the best, so Random Forest become the focus since it is also available in MLlib. Random forests is a well-known ensemble method that's used to build predictive classification models. The model creates an entire forest of random uncorrelated decision trees to arrive at the best possible answer. Random Forest looks to reduce a correlation issue, a limitation to bagging trees, through choosing a subsample of the feature space at each split by using a stopping criteria for node splits to prune the trees. Exploration of multiple parameter combinations was explored to achieve the best possible accuracy. \\
 
 \subsection*{3.1 Data Analysis and Feature Extraction}
 To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 ``foreground'' images and 100 ``background'' images (see Appendix \ref{fig:visualization}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.\\
 
-Image pre-processing and feature extraction was performed with the hopes to reduce the sample size, and, consequently, be able to try more parameters as the training will be speed up (see Appendix \ref{fig:visualization} for the comparison of images of foreground sample and background sample). We looked at the distribution of the training data since we knew we were dealing with class imbalance on the validation/prediction data set (image 5) and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. By looking at the images for foreground and background, we noticed that there were some obvious features that were highly correlated to the label such as the center pixel value - the center pixel value is usually high in a foreground image, and usually low in a background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
+Image pre-processing and feature extraction was performed with the hopes to reduce the sample size, and, consequently, be able to try more parameters as the training will be speed up (see Appendix \ref{fig:visualization} for the comparison of images of foreground sample and background sample). We looked at the distribution of the training data since we knew we were dealing with class imbalance on the validation/prediction data set (image 5) and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. By looking at the images for foreground and background, we noticed that there were some obvious features that were highly correlated to the label such as the center pixel value - the center pixel value is usually high in a foreground image, and usually low in a background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector for all 3 planes XY, XZ, YZ:
 
 \begin{itemize}
 \setlength\itemsep{0.2em}
@@ -121,12 +121,15 @@ Hyperparameter optimization was performed. Changes of parameters controlling par
 \item Impurity: gini was used since it does not require computing logarithmic functions like entropy (less expensive) and online reports had shown that this measure has a small effect on performance.
 \end{itemize}
 
-\subsection*{3.3 Computation and Partitioning}
-
+\subsection*{3.3 Parallel Processing}
+Our distributed parallel application pipeline (see Appendix \ref{fig:pipeline}) runs on AWS EMR. First, preprocessing was 1 job per image. Next, pre-processing transforms 6GB images on 65MB image. The training images are fed into the Random Forest Model to train. The image is persisted, which is a job that shuffles the data depending on the parameters. The classification job has a persisted model and it receives only the image that we want to classify. Since we intentionally made our feature vector small to help with class imbalance and performance, we didn’t see a lot of scaling during this phase (firing up more than 4 worker machines was not necessary).
 
 \section*{4 Results}
 
-Accuracy did not seem to be the best metric to select the best model, as it does not attribute the right importance to the minority class with respect to the dataset, but we did use it as a scoring metric. Table \ref{tab:parameters-runtime} shows the results of different Random Forest parameters on model accuracy. In our best model run on AWS, 10 machines with 40 partitions were used on the data in the training phase. In the prediction phase, only 4 machines were used.
+As we learned through our readings and research, accuracy is not the best metric to select the best model, as it does not attribute the right importance to the minority class with respect to the dataset. However, we did use it as a scoring metric since we had an available file with the true results of image 5 to compare to in order to see if we beat the baseline after complete analysis, exploration and implementation. We also used confusion matrices to better analysis the results as recommended\cite{imbalance}.
+
+\subsection*{4.1 Parallel System}
+Table \ref{tab:parameters-runtime} shows the results of different Random Forest parameters on model accuracy. In our best model run on AWS, 10 machines with 40 partitions were used on the data in the training phase. In the prediction phase, only 4 machines were used.
 
 \begin{table}[h!]
 \centering
@@ -157,6 +160,8 @@ Run time (mins) & Depth & Bins & Trees & Accuracy \\ [0.5ex]
 
 As we can see in the table above, increasing the depth, number of trees, and max bins increased the run time but also improved accuracy leading us to select depth of 15 and number of bins (discretization of the continuous features) as 512. When taking into account the number of trees, there was no gain beyond the point of 50 trees, for this reason, 50 was the selected metric.\\
 
+The Confusion matrix \ref{fig:confusionmatrix} shows comparison between proposed baseline and best model accuracy. As it can be observed by the bold numbers in black and green, for the current testing set (the entire image 2 sample data), our model beats the baseline.
+
 \begin{center}
 \begin{figure}[!h]
 \centering
@@ -165,29 +170,9 @@ As we can see in the table above, increasing the depth, number of trees, and max
 \end{figure}
 \end{center}
 
-The Confusion matrix \ref{fig:confusionmatrix} shows comparison between proposed baseline and best model accuracy. As it can be observed by the bold numbers in black and green, for the current testing set (the entire image 2 sample data), our model beats the baseline.
-
-\begin{table}[h!]
-\centering
- \begin{tabular}{||c c c||} 
- \hline
-Model & Run time (mins) & Accuracy \\ [0.5ex] 
- \hline\hline
-Random Forest & 22.8  & .99767   \\[1ex] 
- \hline
- SVM & 0  & 0 \\
-\hline
-KNN & 0  & 0 \\
-\hline
- \end{tabular}
- \caption{Accuracy Comparison of Sequential vs. Parallel Environment}
- \label{tab:accuracy-comparison}
-\end{table}
-
-\subsection*{4 Performance}
 The running time and speed up results for the model training and prediction phase on a single machine and Apache Spark are show below:
 
-\subsection*{4.1 Model Training}
+\subsubsection*{4.1.1 Model Training}
 
 The following table shows that there is a a good speedup on running time when we scaled from 2 workers to 10 worker machines. Taking in consideration that 50 decision trees are being trained in the selected model, and that MLLib implements parallel tasks based on the number of trees and splits of data, it makes sense that the training job scales well with the increase of the number of available cores (workers* core/worker) up to the number of trees. But, beyond this point, the speedup gain stagnates which can be observed by the running time values of 10 (40 cores) and 19  workers (76 cores). 
 
@@ -215,7 +200,7 @@ $Speed up(3,10) = 5.02$
 $Speed up(3,19) = 5.58$
 \end{center}
 
-\subsection*{4.2 Model Prediction}
+\subsubsection*{4.1.2 Model Prediction}
 
 The table bellow show the running time for classification of the validation dataset with respect to the number of machines. During this job we have set the number of partitions to be equal to the number of available cores on our system. It is interesting to note that this job scales well until we reach 4 worker machines (16 cores). After this point, the application does not scale well and plateau at $~2.80$ speedup if compared to the running time of 1 machine. Inspecting the possible causes indicate that there is a non-negligible overhead when splitting and and using chunks of data smaller then $65/(4\times 4)=4MB$, which corresponds to:
 
@@ -246,6 +231,28 @@ $Speed up(1,4) = 2.727$
 
 $Speed up(1,10) = 2.92$
 \end{center}
+
+
+\subsection*{4.2 Single Machine}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{||c c c||} 
+ \hline
+Model & Run time (mins) & Accuracy \\ [0.5ex] 
+ \hline\hline
+Random Forest & 22.8  & .99767   \\[1ex] 
+ \hline
+ SVM & 0  & 0 \\
+\hline
+KNN & 0  & 0 \\
+\hline
+ \end{tabular}
+ \caption{Accuracy Comparison of Sequential vs. Parallel Environment}
+ \label{tab:accuracy-comparison}
+\end{table}
+
+
 
 
 

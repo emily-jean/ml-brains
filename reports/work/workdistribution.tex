@@ -1,0 +1,66 @@
+\documentclass{neu_handout}
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{marvosym}
+\usepackage{graphicx}
+\usepackage[pdftex]{graphicx}
+\usepackage{subfigure}
+\graphicspath{ {images/} }
+\everymath{\displaystyle}
+
+% Professor/Course information
+\title{Classification in High-Resolution Brain Scans Using Apache Spark: Project Work Distribution}
+\author{Asha Chen-Phang, Emily Dutile, Nate Otenti, Tristan Sweeney}
+\date{April 2018}
+\course{EECE5644}{Pattern Recognition and Machine Learning }
+
+\begin{document}
+
+\newenvironment{myitemize}
+{ \begin{itemize}
+    \setlength{\itemsep}{0pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}     }
+{ \end{itemize}                  } 
+
+Asha:
+\begin{myitemize}
+  \item Data analysis in Jupyter Notebook (python)
+   \item Aided with parameter tuning within the model code of the Spark/Scala program
+  \item Prepared, wrote and edited the Report with images and references
+  \item Prepared the Presentation
+   \item Wrote the Readme with instructions on how to build and run locally as well as run on EMR
+\end{myitemize}
+
+Emily Dutile:
+\begin{myitemize}
+  \item Implemented and configured Makefile needed for standalone and AWS runs for Apache Spark
+  \item Executed AWS/EMR Runs and gathered results for analysis
+  \item Implemented Random Forest Model Training in scala
+  \item Implemented Random Forest Prediction Phase in scala
+\item Contributed to Feature Extraction and preprocessing in Jupyter Notebook
+  \item Report contributions
+\end{myitemize}
+
+Nate Otenti:
+\begin{myitemize}
+  \item Model Comparison Tests in python (Jupyter notebooks)
+   \item Apache Maven integration - pom file
+    \item Contributed to Feature Extraction and preprocessing in Jupyter Notebook
+   \item Presentation contributions
+  \item Report contributions
+\end{myitemize}
+
+Tristan Sweeney:
+\begin{myitemize}
+  \item Random Forest in python (Jupyter Notebook)
+  \item KNN in python (Jupyter Notebook)
+  \item SVM in python (Jupyter Notebook)
+  \item Executed numerous runs with entire dataset and pre-processed dataset for analysis
+  \item SVM in python (Jupyter Notebook)
+  \item Report contributions
+\end{myitemize}
+
+
+\end{document}
