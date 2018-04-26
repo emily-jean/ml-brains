@@ -237,11 +237,11 @@ $Speed up(1,10) = 2.92$
 
 \subsection*{4.2 Single Machine}
 
-Small scale machine learning proved to be possible on a commodity laptop, given preprocessed data that had already undergone dimensionality reduction. Utilizing a python framework called SciKit-Learn (sklearn) we were able to train a random forest model on this preprocessed dataset with comperable accuracy. Such results can be seen tabulated below.
+Small scale machine learning proved to be possible on a commodity laptop, given preprocessed data that had already undergone dimensionality reduction. Utilizing a python framework called SciKit-Learn (sklearn) we were able to train a random forest model on this preprocessed dataset with comparable accuracy. Such results can be seen tabulated below.\\
 
-When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was inpractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interupt training (laptop dieing/hibernating/crashing).
+When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was impractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interrupt training (laptop dieing/hibernating/crashing).\\
 
-To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifer and developed a tool on top of sklearn to partition the dataset and create seperate files for each tree in the forest, trained each tree seperately, then assembled them into an ensemble classifer by manipulating some python internals of sklearn. This approach differed from the intrinsic behavior of sklearn by constraining the size of the active set of RAM on the machine, having only one active dataset and tree at any time. Our approach vigourously checkpoints, leaving little to be lost in case of a fault, but we don't believe that this approach is generalizable to all approaches and algorithms (and requires annoying manual instrumentation) so your milage may vary.
+To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifier and developed a tool on top of sklearn to partition the dataset and create separate files for each tree in the forest, trained each tree separately, then assembled them into an ensemble classifier by manipulating some python internals of sklearn. This approach differed from the intrinsic behavior of sklearn by constraining the size of the active set of RAM on the machine, having only one active dataset and tree at any time. Our approach vigorously checkpoints, leaving little to be lost in case of a fault, but we don't believe that this approach is generalizable to all approaches and algorithms (and requires annoying manual instrumentation) so your milage may vary.
 
 \begin{table}[h!]
 \centering
@@ -256,7 +256,7 @@ Random Forest & 22.8  & .99767   \\[1ex]
 KNN & 0  & 0 \\
 \hline
  \end{tabular}
- \caption{Comparison of Models on Single Machine}
+ \caption{Comparison of Models on Single Machine using Preprocessed Dataset}
  \label{tab:accuracy-comparison}
 \end{table}
 
@@ -278,7 +278,7 @@ KNN & 0  & 0 \\
 \section*{5 Conclusion}
 The purpose and motivation of our project was to take an interesting and complex image data set to perform the following: data analysis, feature extraction/pre-processing, parameter tuning, running and configuring an Apache Spark application in scala on AWS EMR, selecting and implementing an appropriate model, and analyzing the execution times between single machine runs and parallel runs. Datasets that suffer from class imbalance often result in bias or overly complex models, or made it nearly impossible to beat baseline accuracies of over 99\%. Our approach followed a mixture of recommended methods and ultimately beat the baseline of the validation data (image 5).\\
 
-Our experements in training on a laptop locally found that for small datasets (in both number of samples and features per sample) it can be more practical to train locally for 5~10 minutes than to offload to a EMR cluster, wait for it to come online, transfer over data, compute, and download results. However, dimensionality reduction may not always be as accurate as when applied to this particular dataset and may produce suboptimal results, so millage may vary on this approach. However, if it can be created having a feature reducced dataset availible for quick iteration on approaches and algorithm tuning can be monumentally useful for tuning an algorithm in the field, and for demonstrating approaches to others.
+Our experiments in training on a laptop locally found that for small datasets (in both number of samples and features per sample) it can be more practical to train locally for 5~10 minutes than to offload to a EMR cluster, wait for it to come online, transfer over data, compute, and download results. However, dimensionality reduction may not always be as accurate as when applied to this particular dataset and may produce suboptimal results, so millage may vary on this approach. However, if it can be created having a feature reduced dataset available for quick iteration on approaches and algorithm tuning can be monumentally useful for tuning an algorithm in the field, and for demonstrating approaches to others.
 
 
 \newpage
