@@ -42,9 +42,9 @@
 \begin{document}
 
 \section*{1 Introduction}
-Being in the multi-core and machine learning era, it is important for our machine learning algorithms to take advantage of the potential speed up through the use of paralleling tasks on multi-core computers and distributed systems. With an interest in processing a massive image dataset, performing feature engineering and using well-known industry solution for faster computation, the group used Apache Spark, a processing model for analyzing big data, to analyze the speed up of machine learning algorithms for foreground-background classification in high-resolution brain scans. With the dataset, we performed preprocessing, feature extraction, model implementations in python using sklearn in a single-processor solution, and model implementations in scala on top of Apache Spark using MLlib to analyze time and processing efficiency in a parallel processing program upon distributed data. In a single machine environment, we experimented with SVM, KNN, and Random Forest. In our parallelized environment, Random Forest was implemented to analyze the model and training phase with parameter tuning in comparison to a single processor environment. The Apache Spark environment was created on an Amazon EMR cluster, leveraging the EMR file system (EMRFS) to access data in Amazon S3.\\
+Being in the multi-core and machine learning era, it is important for our machine learning algorithms to take advantage of the potential speed up through the use of paralleling tasks on multi-core computers and distributed systems. With an interest in processing a massive image dataset, performing feature engineering and using well-known industry solution for faster computation, the group used Apache Spark \cite{spark}, a processing model for analyzing big data, to analyze the speed up of machine learning algorithms for foreground-background classification in high-resolution brain scans. With the dataset, we performed preprocessing, feature extraction, model implementations in python using sklearn in a single-processor solution, and model implementations in scala on top of Apache Spark using MLlib to analyze time and processing efficiency in a parallel processing program upon distributed data. In a single machine environment, we experimented with SVM, KNN, and Random Forest \cite{randomforestclassifier}. In our parallelized environment, Random Forest was implemented to analyze the model and training phase with parameter tuning in comparison to a single processor environment. The Apache Spark environment was created on an Amazon EMR \cite{amazonemr} cluster, leveraging the EMR file system (EMRFS) to access data in Amazon S3.\\
 
-The dataset we are working with comes from a group of scientist who have an interest of turning high-resolution brain scans, as seen in the left figure \ref{fig:left}, into a graph representing nerve connections indicated by the bright lines. The original image is 3-dimensional. For better intuition the 2-dimensional projection on the X-Y plane is shown. As you can see, the image is noisy but the axons, which are the lines going across the image, are clearly visible. To improve the quality of algorithms that automatically trace these axons in an image, each pixel was classified as either foreground (belongs to an axon) or background (does not belong to an axon). The group of scientists manually traced the axons. The traced data looks like the figure on the right\ref{fig:right}, where white indicates foreground and black indicates background.\\
+The dataset we are working with comes from a group of scientist that are interested in turning high-resolution brain scans, as seen in the left figure \ref{fig:left}, into a graph representing nerve connections (indicated by the bright lines). The original image is 3-dimensional, but the 2-dimensional projection on the X-Y plane is shown below. The axons, which are the lines going across the image, are clearly visible, however, we do see a lot of noise in the image. Each pixel in an image was classified as either foreground (belongs to an axon) or background (does not belong to an axon) in order to improve the quality of algorithms that automatically trace these axons. The axons were manually traced by the group of scientist. The traced data looks like the figure on the right\ref{fig:right}, where white indicates foreground and black indicates background.\\
 
 \begin{figure}[h]
 \centering
@@ -59,7 +59,7 @@ The dataset we are working with comes from a group of scientist who have an inte
 \end{figure}
 
 
-Using the manually traced image, the labeled data was generated as follows:
+The labeled data was generated as follows (using the manually traced image):
 \newenvironment{myitemize}
 { \begin{itemize}
     \setlength{\itemsep}{0pt}
@@ -88,7 +88,7 @@ Being in the big data age, datasets are rapidly growing in size and complexity. 
 
 Apache Spark is a well known open source framework that is becoming more readily used within industry as a cluster computer system that excels in scaling machine learning tasks, including its open-source distributed machine learning library as a standard component, MLlib \cite{mllib}. MLlib contains algorithms for classification, regression, collaborative filtering, clustering, and decomposition. Apache Spark is known for its speed it comparison to Hadoop MapReduce, running programs up to 100x faster in memory or 10x faster on disk. For programmers, it can be used to quickly write applications in either Scala, Java, or Python. Spark SQL, another Spark component, is also available to easily extract data from sources, such as Apache Hive. Since Spark has named its as a general purpose big data platform, its easy to run in standalone mode locally, on YARN or Amazon's EC2, and it also reads from HDFS, Amazon's S3, and HBase. Industry technology leaders are leading towards Spark MLlib due to its scalability, performance, user friendly APIs, and its other components.\\
 
-The model training phase and model use (prediction) phase of decision trees are possible targets for parallelization. Decision trees are ``easier'' to parallelize in comparison to many other classification models because of their tree structure.
+Since Random forests train a set of decision trees, the model training phase and model use (prediction) phase of decision trees are possible targets for parallelization. Decision trees are ``easier'' to parallelize in comparison to many other classification models because of their tree structure \cite{parallelrf}.\\
 
 With respect to the dataset being used, the other interesting task at hand is dealing with imbalanced data and since our machine learning algorithms usually assume that the number of items per class is roughly similar. As Bartosz Krawczyk explains in \textit{Learning from Imbalanced Data: Open Challenges and Future Directions} \cite{Krawczyk}, our systems that learn from imbalanced data often have a hard time overcoming these biases without an overly complex system. Over the past several years, ensemble methods are widely used in order to handle class imbalance due to its successful approaches of Boosting and Bagging. Although accuracy is a very common metric for many traditional machine learning applications, in practice it is often observed that 0 is the value of the recall for the minority class. Due to this, other metrics need to be considered, such as a confusion matrix in order to see better performance on the minority class \cite{imbalance}.
 
@@ -109,7 +109,7 @@ Image pre-processing and feature extraction was performed with the hopes to redu
 
 In the application Pipeline (see Appendix \ref{fig:pipeline}) \textit{Feature Extraction} is our first job. It is in charge of reducing the dataset size from 6 GB per image to ~65 MB per image. This is one job per image. This piece has been implemented as a map only job and has to be executed in every sample data (train, test, validation). \\
 
-From our data analysis we performed a classification comparison of several classifiers on a smaller sample of the dataset through cross validation to gain a better sense of the nature of the decision boundaries of different classifiers with respect to the dataset. In Appendix D, the classifier comparison can be viewed along with the classification accuracy on the test set in the lower right. The test set contained a balanced scenario with 100/100 samples, proving that the Random Forest had the best accuracy with a 60/40 train/test sample using the feature vector without parameter tuning. According to our previous research on dealing with imbalanced data, these results aligned.
+From our data analysis we performed a classification comparison \cite{compare} of several classifiers on a smaller sample of the dataset through cross validation to gain a better sense of the nature of the decision boundaries of different classifiers with respect to the dataset. In Appendix D, the classifier comparison can be viewed along with the classification accuracy on the test set in the lower right. The test set contained a balanced scenario with 100/100 samples, proving that the Random Forest had the best accuracy with a 60/40 train/test sample using the feature vector without parameter tuning. According to our previous research on dealing with imbalanced data, these results aligned.
 
 \subsection*{3.2 Parameter Tuning}
 
@@ -206,7 +206,7 @@ $Speed up(3,19) = 5.58$
 
 The table bellow show the running time for classification of the validation dataset with respect to the number of machines. During this job we have set the number of partitions to be equal to the number of available cores on our system. It is interesting to note that this job scales well until we reach 4 worker machines (16 cores). After this point, the application does not scale well and plateau at $~2.80$ speedup if compared to the running time of 1 machine. Inspecting the possible causes indicate that there is a non-negligible overhead when splitting and and using chunks of data smaller then $65/(4\times 4)=4MB$, which corresponds to:
 
-$$ChunkSize = ValidationDataSize/(NofWorkers \times NofCores)$$
+$$ChunkSize = ValidationDataSize/(Number Of Workers \times Number Of Cores)$$
 
 \begin{center}
  \begin{tabular}{||c c ||} 
@@ -241,7 +241,7 @@ Small scale machine learning proved to be possible on a commodity laptop, given 
 
 When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was inpractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interupt training (laptop dieing/hibernating/crashing).
 
-To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifer and developed a tool on top of sklearn to partition the dataset and create seperate files for each tree in the forest, trained each tree seperately, then assembled them 
+To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifer and developed a tool on top of sklearn to partition the dataset and create seperate files for each tree in the forest, trained each tree seperately, then assembled them into an ensemble classifer by manipulating some python internals of sklearn. This approach differed from the intrinsic behavior of sklearn by constraining the size of the active set of RAM on the machine, having only one active dataset and tree at any time. Our approach vigourously checkpoints, leaving little to be lost in case of a fault, but we don't believe that this approach is generalizable to all approaches and algorithms (and requires annoying manual instrumentation) so your milage may vary.
 
 \begin{table}[h!]
 \centering
@@ -276,7 +276,9 @@ KNN & 0  & 0 \\
 
 
 \section*{5 Conclusion}
-The purpose and motivation of our project was to take an interesting and complex image data set to perform the following: data analysis, feature extraction/pre-processing, parameter tuning, running and configuring an Apache Spark application in scala on AWS EMR, selecting and implementing an appropriate model, and analyzing the execution times between single machine runs and parallel runs. Datasets that suffer from class imbalance often result in bias or overly complex models, or made it nearly impossible to beat baseline accuracies of over 99\%. Our approach followed a mixture of recommended methods and ultimately beat the baseline of the validation data (image 5).
+The purpose and motivation of our project was to take an interesting and complex image data set to perform the following: data analysis, feature extraction/pre-processing, parameter tuning, running and configuring an Apache Spark application in scala on AWS EMR, selecting and implementing an appropriate model, and analyzing the execution times between single machine runs and parallel runs. Datasets that suffer from class imbalance often result in bias or overly complex models, or made it nearly impossible to beat baseline accuracies of over 99\%. Our approach followed a mixture of recommended methods and ultimately beat the baseline of the validation data (image 5).\\
+
+Our experements in training on a laptop locally found that for small datasets (in both number of samples and features per sample) it can be more practical to train locally for 5~10 minutes than to offload to a EMR cluster, wait for it to come online, transfer over data, compute, and download results. However, dimensionality reduction may not always be as accurate as when applied to this particular dataset and may produce suboptimal results, so millage may vary on this approach. However, if it can be created having a feature reducced dataset availible for quick iteration on approaches and algorithm tuning can be monumentally useful for tuning an algorithm in the field, and for demonstrating approaches to others.
 
 
 \newpage
@@ -292,6 +294,10 @@ Map-Reduce for Machine Learning on Multicore,
 \bibitem{imbalance} 
 On the Class Imbalance Problem,
 \\\texttt{http://sci2s.ugr.es/keel/pdf/specific/congreso/guo\_on\_2008.pdf}
+
+\bibitem{parallelrf} 
+A Parallel Random Forest Algorithm for Big Data in a Spark Cloud Computing Environment,
+\\\texttt{https://ieeexplore.ieee.org/document/7557062/}
 
 \bibitem{amazonemr} 
 Apache Spark - Amazon EMR,
