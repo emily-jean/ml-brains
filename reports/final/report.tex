@@ -241,7 +241,7 @@ Small scale machine learning proved to be possible on a commodity laptop, given 
 
 When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was inpractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interupt training (laptop dieing/hibernating/crashing).
 
-To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifer and developed a tool on top of sklearn to partition the dataset and create seperate files for each tree in the forest, 
+To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifer and developed a tool on top of sklearn to partition the dataset and create seperate files for each tree in the forest, trained each tree seperately, then assembled them 
 
 \begin{table}[h!]
 \centering
@@ -268,7 +268,7 @@ KNN & 0  & 0 \\
 \label{fig:rflocalgini}
 }
 {
-\includegraphics[width=0.4\linewidt h]{rflocalentropy}
+\includegraphics[width=0.4\linewidth]{rflocalentropy}
 \label{fig:rflocalentropy}
 }
 \end{figure}
