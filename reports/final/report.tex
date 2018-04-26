@@ -88,10 +88,10 @@ Using the standard way of training and testing a classification model, the label
 \section*{3 Methods}
 Various models were evaluated in order to receive the highest accuracy of predictions on the high resolution brain scans\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} such as Linear SVM, Nearest Neighbor, Decision Tree, Neural Net and AdaBoost. The model that gave us the best results was Random Forest. Random forests is a well-known ensemble method that's used to build predictive classification models. The model creates an entire forest of random uncorrelated decision trees to arrive at the best possible answer. Random Forest looks to reduce a correlation issue, a limitation to bagging trees, through choosing a subsample of the feature space at each split by using a stopping criteria for node splits to prune the trees. Exploration of multiple parameter combinations was explored to achieve the best possible accuracy. \\
 
-To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 "foreground" images and 100 "background" images (see Appendix \ref{fig:neuron-slices}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.
+To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 "foreground" images and 100 "background" images (see Appendix \ref{fig:visualization}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.
 
 \subsection*{3.1 Preprocessing and Feature Extraction}
-Image pre-processing and feature extraction was performed (see Appendix \ref{fig:foreground-xy-1} for the comparison of images of foreground sample and background sample). We looked at the distribution of the data since we knew we were dealing with class imbalance and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
+Image pre-processing and feature extraction was performed (see Appendix \ref{fig:visualization} for the comparison of images of foreground sample and background sample). We looked at the distribution of the data since we knew we were dealing with class imbalance and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
 
 \begin{itemize}
 \setlength\itemsep{0.2em}
@@ -132,7 +132,7 @@ Hyperparameter optimization was performed. Changes of parameters controlling par
 
 \section*{4 Results}
 
-Accuracy did not seem to be the best metric to select the best model, as it does not attribute the right importance to the minority class, but we did use it as a scoring metric. Table \ref{tab:parameters-runtime} shows the results of different Random Forest parameters on model accuracy.
+Accuracy did not seem to be the best metric to select the best model, as it does not attribute the right importance to the minority class with respect to the dataset, but we did use it as a scoring metric. Table \ref{tab:parameters-runtime} shows the results of different Random Forest parameters on model accuracy. In our best model run on AWS, 10 machines with 40 partitions were used on the data in the training phase. In the prediction phase, only 4 machines were used.
 
 \begin{table}[h!]
 \centering
@@ -166,7 +166,7 @@ As we can see in the table above, increasing the depth, number of trees, and max
 \begin{center}
 \begin{figure}[!h]
 \centering
-  \includegraphics[width=0.3\linewidth]{confusionmatrix}
+  \includegraphics[width=0.5\linewidth]{confusionmatrix}
   \label{fig:confusionmatrix}
 \end{figure}
 \end{center}
@@ -189,6 +189,70 @@ KNN & 0  & 0 \\
  \caption{Accuracy Comparison of Sequential vs. Parallel Environment}
  \label{tab:accuracy-comparison}
 \end{table}
+
+\subsection*{4 Performance}
+The running time and speed up results for the model training and prediction phase on a single machine and Apache Spark are show below:
+
+\subsection*{4.1 Model Training}
+
+The following table shows that there is a a good speedup on running time when we scaled from 2 workers to 10 worker machines. Taking in consideration that 50 decision trees are being trained in the selected model, and that MLLib implements parallel tasks based on the number of trees and splits of data, it makes sense that the training job scales well with the increase of the number of available cores (workers* core/worker) up to the number of trees. But, beyond this point, the speedup gain stagnates which can be observed by the running time values of 10 (40 cores) and 19  workers (76 cores). 
+
+\begin{figure}[!htb]
+\begin{center}
+ \begin{tabular}{||c c ||}
+ \hline
+Workers & Running Time (seconds) \\ [0.5ex] 
+ \hline\hline
+  2 & 2924  \\ 
+  \hline
+ 10 & 582  \\ 
+  \hline
+ 19 & 524  \\ [1ex] 
+ \hline
+\end{tabular}
+\end{center}
+\end{figure}
+
+\begin{center}
+$Speed up(x,y)$ = running time on $x$ machines / running time on $y$ machines
+
+$Speed up(3,10) = 5.02$
+
+$Speed up(3,19) = 5.58$
+\end{center}
+
+\subsection*{4.2 Model Prediction}
+
+The table bellow show the running time for classification of the validation dataset with respect to the number of machines. During this job we have set the number of partitions to be equal to the number of available cores on our system. It is interesting to note that this job scales well until we reach 4 worker machines (16 cores). After this point, the application does not scale well and plateau at $~2.80$ speedup if compared to the running time of 1 machine. Inspecting the possible causes indicate that there is a non-negligible overhead when splitting and and using chunks of data smaller then $65/(4\times 4)=4MB$, which corresponds to:
+
+$$ChunkSize = ValidationDataSize/(NofWorkers \times NofCores)$$
+
+\begin{center}
+ \begin{tabular}{||c c ||} 
+ \hline
+Workers & Running Time (seconds) \\ [0.5ex] 
+ \hline\hline
+ 1 & 240  \\ 
+ \hline
+ 2 & 160  \\ 
+ \hline
+ 4 & 88  \\ 
+ \hline
+ 8 & 92  \\ 
+ \hline
+ 10 & 82  \\  [1ex] 
+ \hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+$Speed up(x,y)$ = running time on $x$ machines / running time on $y$ machines
+
+$Speed up(1,4) = 2.727$
+
+$Speed up(1,10) = 2.92$
+\end{center}
+
 
 
 \section*{5 Conclusion}
@@ -272,20 +336,12 @@ Spark Programming Guide
 \appendix
 \section*{Appendices}
 
-\section{Visualizing the Input}
-
+\section{Visualizing the Input, Foreground And Background Analysis}
 \begin{figure}[!h]
-  \includegraphics[width=0.15\linewidth]{neuron-slices}
-  \label{fig:neuron-slices}
-\end{figure}
-
-\newpage
-
-\section{Foreground And Background Analysis}
-\begin{figure}[!h]
-  \includegraphics[width=0.5\linewidth]{foreground-xy-1}
-  \includegraphics[width=0.5\linewidth]{background-xy-0}
-  \label{fig:foreground-xy-1}
+\includegraphics[width=0.13\linewidth]{neuron-slices}
+  \includegraphics[width=0.42\linewidth]{foreground-xy-1}
+  \includegraphics[width=0.42\linewidth]{background-xy-0}
+  \label{fig:visualization}
 \end{figure}
 
 \newpage
