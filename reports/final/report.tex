@@ -42,9 +42,9 @@
 \begin{document}
 
 \section*{1 Introduction}
-Being in the multi-core and machine learning era, it is important for our machine learning algorithms to take advantage of the potential speed up through the use of paralleling tasks on multi-core computers and distributed systems. With an interest in processing a massive image dataset and using well-known industry solution for faster computation, the group used Apache Spark, a processing model for analyzing big data, to analyze the speed up of machine learning algorithms for foreground-background classification in high-resolution brain scans. With the dataset, we performed preprocessing, feature extraction, implemented Random Forest in python using sklearn in a single-processor solution, and implemented Random Forest in scala on top of Apache Spark using MLlib to analyze time and processing efficiency in a parallel processing program upon distributed data. The Apache Spark environment was created on an Amazon EMR cluster, leveraging the EMR file system (EMRFS) to access data in Amazon S3.\\
+Being in the multi-core and machine learning era, it is important for our machine learning algorithms to take advantage of the potential speed up through the use of paralleling tasks on multi-core computers and distributed systems. With an interest in processing a massive image dataset, performing feature engineering and using well-known industry solution for faster computation, the group used Apache Spark, a processing model for analyzing big data, to analyze the speed up of machine learning algorithms for foreground-background classification in high-resolution brain scans. With the dataset, we performed preprocessing, feature extraction, model implementations in python using sklearn in a single-processor solution, and model implementations in scala on top of Apache Spark using MLlib to analyze time and processing efficiency in a parallel processing program upon distributed data. In a single machine environment, we experimented with SVM, KNN, and Random Forest. In our parallelized environment, Random Forest was implemented to analyze the model and training phase with parameter tuning in comparison to a single processor environment. The Apache Spark environment was created on an Amazon EMR cluster, leveraging the EMR file system (EMRFS) to access data in Amazon S3.\\
 
-We worked with a dataset with the interest of turning high-resolution brain scans, as seen in the left figure \ref{fig:left}, into a graph representing nerve connections indicated by the bright lines. The original image is 3-dimensional. For better intuition the 2-dimensional projection on the X-Y plane is shown. As you can see, the image is noisy but the axons, which are the lines going across the image, are clearly visible. To improve the quality of algorithms that automatically trace these axons in an image, we classified each pixel as foreground (belongs to an axon) or background (does not belong to an axon). The traced data looks like the figure on the right\ref{fig:right}, where white indicates foreground and black indicates background.\\
+The dataset we are working with comes from a group of scientist who have an interest of turning high-resolution brain scans, as seen in the left figure \ref{fig:left}, into a graph representing nerve connections indicated by the bright lines. The original image is 3-dimensional. For better intuition the 2-dimensional projection on the X-Y plane is shown. As you can see, the image is noisy but the axons, which are the lines going across the image, are clearly visible. To improve the quality of algorithms that automatically trace these axons in an image, each pixel was classified as either foreground (belongs to an axon) or background (does not belong to an axon). The group of scientists manually traced the axons. The traced data looks like the figure on the right\ref{fig:right}, where white indicates foreground and black indicates background.\\
 
 \begin{figure}[h]
 \centering
@@ -75,45 +75,39 @@ Using the manually traced image, the labeled data was generated as follows:
 \end{myitemize}
 
 Assuming pixel (i=10, j=10, k=10) was selected and we are working with a neighborhood of size 3x3x3, these 27 pixels would be stored as a vector n with 27 elements, where n[0] stores the brightness value of
-pixel (9, 9, 9), n[1] the brightness of (9, 9, 10), n[2] of (9, 9, 11), n[3] of (9, 10, 9), n[4] of (9, 10, 10), and so on. Neighborhoods of size 21x21x7 were recommended by domain experts, which is what the labeled data sets contain.\\
+pixel (9, 9, 9), n[1] the brightness of (9, 9, 10), n[2] of (9, 9, 11), n[3] of (9, 10, 9), n[4] of (9, 10, 10), and so on. The labeled data set contains neighborhoods of size 21x21x7, which was recommended by the domain experts.\\
 
 \subsection*{1.1 The Data}
 The dataset\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} is composed of several labeled csv files, each consisting of rows that contain an input vector of 21x21x7
-brightness values (intensity) from a 3D image, together with the center pixel's foreground-vs-background label. The last value is the label for the whole image. On each line there are 21*21*7+1 values. Each image, which is a csv file, is roughly 6.5 GB. The labeled data from images 1, 2, 3, 4, and 6 are used to train the most accurate model for predicting the labels in image 5 of the datasets. In the final evaluation set, there are nearly 0.0057\% foreground and 99.99\% background pixel. For classification accuracy, a high value does not necessarily mean the model is performing well. In our case, the "dumb" model that always predicts label 0 for every input will have 99\% accuracy, so any model achieving less than 99\% would not be beating the dumb model. \\
+brightness values (intensity) from a 3D image, together with the center pixel's foreground-vs-background label. The last value is the label for the whole image. On each line there are 21*21*7+1 values. Each image, which is a csv file, is roughly 6.5 GB. The labeled data from images 1, 2, 3, 4, and 6 are used to train the most accurate model for predicting the labels in image 5 of the datasets. In the final evaluation set, there are nearly 0.0057\% foreground and 99.99943\% background pixel. For classification accuracy, a high value does not necessarily mean the model is performing well. In our case, the ``dumb'' model that always predicts label 0 for every input will have 99\% accuracy, so any model achieving less than 99\% would not be beating the dumb model. \\
 
-Using the standard way of training and testing a classification model, the labeled data is partitioned into 3 separate sets: training, validation and test data. Uniform random partitioning into training and validation data often works well, but there are datasets, such as this one, where it is not sufficient. Assume we have two labeled records with centers (x,y,z) and (x+1, y+1, and z+1). Uniform sampling could assign (x,y,z) to training and (x+1, y+1, and z+1) to the validation data. The two neighborhoods and labels of the two pixels are highly correlated. The model would overfit to the training data and give overly optimistic validation accuracy from the correlations. To ensure independent training and validation, partitioning by image is needed.\\
+Using the standard way of training and testing a classification model, the labeled data is partitioned into 3 separate sets: training, validation and test data. Although uniform random partitioning into training and validation data often works well, for this particular data set it is not sufficient. Assume we have two labeled records with centers (x,y,z) and (x+1, y+1, and z+1), in this case, uniform sampling could assign (x,y,z) to training and (x+1, y+1, and z+1) to the validation data. The two neighborhoods and labels of the two pixels are highly correlated. The model would overfit to the training data and give overly optimistic validation accuracy from the correlations. To ensure independent training and validation, partitioning by image is performed.\\
 
 \section*{2 Related Works}
+Being in the big data age, datasets are rapidly growing in size and complexity. Due to this, cloud computing architectures and solutions are becoming more pervasive and machine learning is also becoming a vital component of these large-scale data processing pipelines. Under this umbrella, exploratory analysis, feature engineering, machine learning, and model evaluation are all critical components to the distribute machine learning solution. Since many machine learning techniques are computationally expensive, this makes them ideal candidates for parallelization. However, these methods are usually complex, so implementing a parallelized solution is often challenging.\\
+
+Apache Spark is a well known open source framework that is becoming more readily used within industry as a cluster computer system that excels in scaling machine learning tasks, including its open-source distributed machine learning library as a standard component, MLlib \cite{mllib}. MLlib contains algorithms for classification, regression, collaborative filtering, clustering, and decomposition. Apache Spark is known for its speed it comparison to Hadoop MapReduce, running programs up to 100x faster in memory or 10x faster on disk. For programmers, it can be used to quickly write applications in either Scala, Java, or Python. Spark SQL, another Spark component, is also available to easily extract data from sources, such as Apache Hive. Since Spark has named its as a general purpose big data platform, its easy to run in standalone mode locally, on YARN or Amazon's EC2, and it also reads from HDFS, Amazon's S3, and HBase. Industry technology leaders are leading towards Spark MLlib due to its scalability, performance, user friendly APIs, and its other components.\\
+
+With respect to the dataset being used, the other interesting task at hand is dealing with imbalanced data and since our machine learning algorithms usually assume that the number of items per class is roughly similar. As Bartosz Krawczyk explains in \textit{Learning from Imbalanced Data: Open Challenges and Future Directions} \cite{Krawczyk}, our systems that learn from imbalanced data often have a hard time overcoming these biases without an overly complex system. Over the past several years, ensemble methods are widely used in order to handle class imbalance due to its successful approaches of Boosting and Bagging. Although accuracy is a very common metric for many traditional machine learning applications, in practice it is often observed that 0 is the value of the recall for the minority class. Due to this, other metrics need to be considered, such as a confusion matrix in order to see better performance on the minority class \cite{imbalance}.
 
 \section*{3 Methods}
 Various models were evaluated in order to receive the highest accuracy of predictions on the high resolution brain scans\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} such as Linear SVM, Nearest Neighbor, Decision Tree, Neural Net and AdaBoost. The model that gave us the best results was Random Forest. Random forests is a well-known ensemble method that's used to build predictive classification models. The model creates an entire forest of random uncorrelated decision trees to arrive at the best possible answer. Random Forest looks to reduce a correlation issue, a limitation to bagging trees, through choosing a subsample of the feature space at each split by using a stopping criteria for node splits to prune the trees. Exploration of multiple parameter combinations was explored to achieve the best possible accuracy. \\
 
-To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 "foreground" images and 100 "background" images (see Appendix \ref{fig:visualization}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.
+\subsection*{3.1 Data Analysis and Feature Extraction}
+To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 ``foreground'' images and 100 ``background'' images (see Appendix \ref{fig:visualization}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.\\
 
-\subsection*{3.1 Preprocessing and Feature Extraction}
-Image pre-processing and feature extraction was performed (see Appendix \ref{fig:visualization} for the comparison of images of foreground sample and background sample). We looked at the distribution of the data since we knew we were dealing with class imbalance and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
+Image pre-processing and feature extraction was performed with the hopes to reduce the sample size, and, consequently, be able to try more parameters as the training will be speed up (see Appendix \ref{fig:visualization} for the comparison of images of foreground sample and background sample). We looked at the distribution of the training data since we knew we were dealing with class imbalance on the validation/prediction data set (image 5) and found thresholds in order to avoid misleading accuracy metrics. The statistics on all of planes( xy, xz, yz ) slices for the two images led us to identifying important features along with a threshold to tell the difference between a foreground and background image. By looking at the images for foreground and background, we noticed that there were some obvious features that were highly correlated to the label such as the center pixel value - the center pixel value is usually high in a foreground image, and usually low in a background image. From this we decided not to train complicated models on the full image but to use the following features and consequently the feature vector:
 
 \begin{itemize}
 \setlength\itemsep{0.2em}
 \item center pixel value
-\item average of a window of pixels around the center pixel
-\item number of pixels with intensity greater than a threshold
+\item average of a window of pixels around the center pixel (FFT slice mean)
+\item number of pixels with intensity greater than a threshold (50)
 \end{itemize}
 
-In the application Pipeline (see Appendix \ref{fig:pipeline}) \textit{Feature Extraction} is our first job. It is in charge of reducing the dataset size from 6 GB per image to ~65 MB per image. This piece has been implemented as a map only job and has to be executed in every sample data (train, test, validation). \\
+In the application Pipeline (see Appendix \ref{fig:pipeline}) \textit{Feature Extraction} is our first job. It is in charge of reducing the dataset size from 6 GB per image to ~65 MB per image. This is one job per image. This piece has been implemented as a map only job and has to be executed in every sample data (train, test, validation). \\
 
-From our data analysis we performed a classification comparison of several classifiers on a smaller sample of the dataset through cross validation to gain a better sense of the nature of the decision boundaries of different classifiers with respect to the dataset. The feature vector was made up of 10 features and the label.
-
-\begin{lstlisting}
-# Feature Vector
-CenterPixel,...
-  xyImgSliceMean,xyFFTSliceMean,xyCntOverThres,...
-  xzImgSliceMean,xzFFTSliceMean,xzCntOverThres,...
-  yzImgSliceMean,yzFFTSliceMean,yzCntOverThres,...
-  label
-\end{lstlisting}
-
-In Appendix D, the classifier comparison can be viewed along with the classification accuracy on the test set in the lower right. The test set contained a balanced scenario with 100/100 samples, proving that the Random Forest had the best accuracy with a 60/40 train/test sample using the feature vector without parameter tuning.
+From our data analysis we performed a classification comparison of several classifiers on a smaller sample of the dataset through cross validation to gain a better sense of the nature of the decision boundaries of different classifiers with respect to the dataset. In Appendix D, the classifier comparison can be viewed along with the classification accuracy on the test set in the lower right. The test set contained a balanced scenario with 100/100 samples, proving that the Random Forest had the best accuracy with a 60/40 train/test sample using the feature vector without parameter tuning. According to our previous research on dealing with imbalanced data, these results aligned.
 
 \subsection*{3.2 Parameter Tuning}
 
@@ -266,6 +260,12 @@ $Speed up(1,10) = 2.92$
 Map-Reduce for Machine Learning on Multicore,
 \\\texttt{http://www.andrewng.org/portfolio/map-reduce-for-machine-learning-on-multicore/}
 
+\bibitem{Krawczyk} Bartosz Krawczyk. \textsl{Learning from imbalanced data: open challenges and future directions}. November 2016, Volume 5, Issue 4, pp 221–232
+
+\bibitem{imbalance} 
+On the Class Imbalance Problem,
+\\\texttt{http://sci2s.ugr.es/keel/pdf/specific/congreso/guo\_on\_2008.pdf}
+
 \bibitem{amazonemr} 
 Apache Spark - Amazon EMR,
 \\\texttt{https://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-spark.html}
@@ -342,6 +342,12 @@ Spark Programming Guide
   \includegraphics[width=0.42\linewidth]{foreground-xy-1}
   \includegraphics[width=0.42\linewidth]{background-xy-0}
   \label{fig:visualization}
+\end{figure}
+
+\section{Center Pixel - foreground and background}
+\begin{figure}[!h]
+  \includegraphics[width=0.6\linewidth]{feature-compare-CenterPixel}
+  \label{fig:feature-compare-CenterPixel}
 \end{figure}
 
 \newpage
