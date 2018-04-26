@@ -88,6 +88,8 @@ Being in the big data age, datasets are rapidly growing in size and complexity. 
 
 Apache Spark is a well known open source framework that is becoming more readily used within industry as a cluster computer system that excels in scaling machine learning tasks, including its open-source distributed machine learning library as a standard component, MLlib \cite{mllib}. MLlib contains algorithms for classification, regression, collaborative filtering, clustering, and decomposition. Apache Spark is known for its speed it comparison to Hadoop MapReduce, running programs up to 100x faster in memory or 10x faster on disk. For programmers, it can be used to quickly write applications in either Scala, Java, or Python. Spark SQL, another Spark component, is also available to easily extract data from sources, such as Apache Hive. Since Spark has named its as a general purpose big data platform, its easy to run in standalone mode locally, on YARN or Amazon's EC2, and it also reads from HDFS, Amazon's S3, and HBase. Industry technology leaders are leading towards Spark MLlib due to its scalability, performance, user friendly APIs, and its other components.\\
 
+The model training phase and model use (prediction) phase of decision trees are possible targets for parallelization. Decision trees are ``easier'' to parallelize in comparison to many other classification models because of their tree structure.
+
 With respect to the dataset being used, the other interesting task at hand is dealing with imbalanced data and since our machine learning algorithms usually assume that the number of items per class is roughly similar. As Bartosz Krawczyk explains in \textit{Learning from Imbalanced Data: Open Challenges and Future Directions} \cite{Krawczyk}, our systems that learn from imbalanced data often have a hard time overcoming these biases without an overly complex system. Over the past several years, ensemble methods are widely used in order to handle class imbalance due to its successful approaches of Boosting and Bagging. Although accuracy is a very common metric for many traditional machine learning applications, in practice it is often observed that 0 is the value of the recall for the minority class. Due to this, other metrics need to be considered, such as a confusion matrix in order to see better performance on the minority class \cite{imbalance}.
 
 \section*{3 Methods}
@@ -235,6 +237,12 @@ $Speed up(1,10) = 2.92$
 
 \subsection*{4.2 Single Machine}
 
+Small scale machine learning proved to be possible on a commodity laptop, given preprocessed data that had already undergone dimensionality reduction. Utilizing a python framework called SciKit-Learn (sklearn) we were able to train a random forest model on this preprocessed dataset with comperable accuracy. Such results can be seen tabulated below.
+
+When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was inpractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interupt training (laptop dieing/hibernating/crashing).
+
+To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifer and developed a tool on top of sklearn to partition the dataset and create seperate files for each tree in the forest, 
+
 \begin{table}[h!]
 \centering
  \begin{tabular}{||c c c||} 
@@ -248,15 +256,27 @@ Random Forest & 22.8  & .99767   \\[1ex]
 KNN & 0  & 0 \\
 \hline
  \end{tabular}
- \caption{Accuracy Comparison of Sequential vs. Parallel Environment}
+ \caption{Comparison of Models on Single Machine}
  \label{tab:accuracy-comparison}
 \end{table}
 
 
+\begin{figure}[h]
+\centering
+{
+\includegraphics[width=0.4\linewidth]{rflocalgini}
+\label{fig:rflocalgini}
+}
+{
+\includegraphics[width=0.4\linewidt h]{rflocalentropy}
+\label{fig:rflocalentropy}
+}
+\end{figure}
 
 
 
 \section*{5 Conclusion}
+The purpose and motivation of our project was to take an interesting and complex image data set to perform the following: data analysis, feature extraction/pre-processing, parameter tuning, running and configuring an Apache Spark application in scala on AWS EMR, selecting and implementing an appropriate model, and analyzing the execution times between single machine runs and parallel runs. Datasets that suffer from class imbalance often result in bias or overly complex models, or made it nearly impossible to beat baseline accuracies of over 99\%. Our approach followed a mixture of recommended methods and ultimately beat the baseline of the validation data (image 5).
 
 
 \newpage
