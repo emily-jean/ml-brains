@@ -86,14 +86,14 @@ Using the standard way of training and testing a classification model, the label
 \section*{2 Related Works}
 Being in the big data age, datasets are rapidly growing in size and complexity. Due to this, cloud computing architectures and solutions are becoming more pervasive and machine learning is also becoming a vital component of these large-scale data processing pipelines. Under this umbrella, exploratory analysis, feature engineering, machine learning, and model evaluation are all critical components to the distribute machine learning solution. Since many machine learning techniques are computationally expensive, this makes them ideal candidates for parallelization. However, these methods are usually complex, so implementing a parallelized solution is often challenging.\\
 
-Apache Spark is a well known open source framework that is becoming more readily used within industry as a cluster computer system that excels in scaling machine learning tasks, including its open-source distributed machine learning library as a standard component, MLlib \cite{mllib}. MLlib contains algorithms for classification, regression, collaborative filtering, clustering, and decomposition. Apache Spark is known for its speed it comparison to Hadoop MapReduce, running programs up to 100x faster in memory or 10x faster on disk. For programmers, it can be used to quickly write applications in either Scala, Java, or Python. Spark SQL, another Spark component, is also available to easily extract data from sources, such as Apache Hive. Since Spark has named its as a general purpose big data platform, its easy to run in standalone mode locally, on YARN or Amazon's EC2, and it also reads from HDFS, Amazon's S3, and HBase. Industry technology leaders are leading towards Spark MLlib due to its scalability, performance, user friendly APIs, and its other components.\\
+Apache Spark is a well known open source framework that is becoming more readily used within industry as a cluster computer system that excels in scaling machine learning tasks, including its open-source distributed machine learning library as a standard component, MLlib \cite{mllib}. MLlib contains algorithms for classification, regression, collaborative filtering, clustering, and decomposition. Apache Spark is known for its speed it comparison to Hadoop MapReduce, running programs up to 100x faster in memory or 10x faster on disk. For programmers, it can be used to quickly write applications in either Scala, Java, or Python. Spark SQL, another Spark component, is also available to easily extract data from sources, such as Apache Hive. Since Spark has named its as a general purpose big data platform, its easy to run in standalone mode locally, on YARN or Amazon's EC2, and it also reads from HDFS, Amazon's S3, and HBase. Industry technology leaders are leaning towards Spark MLlib due to its scalability, performance, user friendly APIs, and its other components.\\
 
-Since Random forests train a set of decision trees, the model training phase and model use (prediction) phase of decision trees are possible targets for parallelization. Decision trees are ``easier'' to parallelize in comparison to many other classification models because of their tree structure \cite{parallelrf}.\\
+Since Random Forests train a set of decision trees, the model training phase and model use (prediction) phase of decision trees are possible targets for parallelization. Decision trees are ``easier'' to parallelize in comparison to many other classification models because of their tree structure \cite{parallelrf}.\\
 
-With respect to the dataset being used, the other interesting task at hand is dealing with imbalanced data and since our machine learning algorithms usually assume that the number of items per class is roughly similar. As Bartosz Krawczyk explains in \textit{Learning from Imbalanced Data: Open Challenges and Future Directions} \cite{Krawczyk}, our systems that learn from imbalanced data often have a hard time overcoming these biases without an overly complex system. Over the past several years, ensemble methods are widely used in order to handle class imbalance due to its successful approaches of Boosting and Bagging. Although accuracy is a very common metric for many traditional machine learning applications, in practice it is often observed that 0 is the value of the recall for the minority class. Due to this, other metrics need to be considered, such as a confusion matrix in order to see better performance on the minority class \cite{imbalance}.
+With respect to the dataset being used, the other interesting task at hand is dealing with imbalanced data since our machine learning algorithms usually assume that the number of items per class is roughly similar. As Bartosz Krawczyk explains in \textit{Learning from Imbalanced Data: Open Challenges and Future Directions} \cite{Krawczyk}, our systems that learn from imbalanced data often have a hard time overcoming these biases without an overly complex system. Over the past several years, ensemble methods are widely used in order to handle class imbalance due to its successful approaches of Boosting and Bagging. Although accuracy is a very common metric for many traditional machine learning applications, in practice it is often observed that 0 is the value of the recall for the minority class. Due to this, other metrics need to be considered, such as a confusion matrix in order to see better performance on the minority class \cite{imbalance}.
 
 \section*{3 Methods}
-Various models were evaluated in order to receive the highest accuracy of predictions on the high resolution brain scans\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} such as Linear SVM, Nearest Neighbor, Decision Tree, Neural Net and AdaBoost. Different models were trained on a subset of the data: 100 random background samples and 100 random foreground samples. We observed that the decision trees, and the two ensemble methods were the ones that performed the best, so Random Forest become the focus since it is also available in MLlib. Random forests is a well-known ensemble method that's used to build predictive classification models. The model creates an entire forest of random uncorrelated decision trees to arrive at the best possible answer. Random Forest looks to reduce a correlation issue, a limitation to bagging trees, through choosing a subsample of the feature space at each split by using a stopping criteria for node splits to prune the trees. Exploration of multiple parameter combinations was explored to achieve the best possible accuracy. \\
+Various models were evaluated in order to receive the highest accuracy of predictions on the high resolution brain scans\footnote{\url{https://drive.google.com/drive/u/0/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo}} such as Linear SVM, Nearest Neighbor, Decision Tree, Neural Net and AdaBoost. Different models were trained on a subset of the data: 100 random background samples and 100 random foreground samples. We observed that the decision trees, and the two ensemble methods were the ones that performed the best, so Random Forest become the focus since it is also available in MLlib. Random Forests is a well-known ensemble method that's used to build predictive classification models. The model creates an entire forest of random uncorrelated decision trees to arrive at the best possible answer. Random Forest looks to reduce a correlation issue, a limitation to bagging trees, through choosing a subsample of the feature space at each split by using a stopping criteria for node splits to prune the trees. Exploration of multiple parameter combinations was explored to achieve the best possible accuracy. \\
 
 \subsection*{3.1 Data Analysis and Feature Extraction}
 To begin visualizing the data, we performed our analysis using Jupyter Notebooks, numpy, and matplotlib. To do so, we took one of the csv files, found the rows of the file that are labeled as 1, found the rows of the file that has 0 as the label, and generated a file with 100 ``foreground'' images and 100 ``background'' images (see Appendix \ref{fig:visualization}). Visualizing this subset of data increased our intuition on what were the important features to segregating samples from different classes.\\
@@ -172,7 +172,7 @@ The Confusion matrix \ref{fig:confusionmatrix} shows comparison between proposed
 \end{figure}
 \end{center}
 
-The running time and speed up results for the model training and prediction phase on a single machine and Apache Spark are show below:
+The running time and speed up results for the model training and prediction phase on a single machine and Apache Spark are show below. The number of trees and max depth are kept consistent, 50 and 15 respectively, seeing that these numbers resulted in the best accuracy out of our runs.
 
 \subsubsection*{4.1.1 Model Training}
 
@@ -204,9 +204,12 @@ $Speed up(3,19) = 5.58$
 
 \subsubsection*{4.1.2 Model Prediction}
 
-The table bellow show the running time for classification of the validation dataset with respect to the number of machines. During this job we have set the number of partitions to be equal to the number of available cores on our system. It is interesting to note that this job scales well until we reach 4 worker machines (16 cores). After this point, the application does not scale well and plateau at $~2.80$ speedup if compared to the running time of 1 machine. Inspecting the possible causes indicate that there is a non-negligible overhead when splitting and and using chunks of data smaller then $65/(4\times 4)=4MB$, which corresponds to:
+The table bellow show the running time for classification of the validation dataset with respect to the number of machines. During this job we have set the number of partitions to be equal to the number of available cores on our system. It is interesting to note that this job scales well until we reach 4 worker machines (16 cores). After this point, the application does not scale well and plateau at ~$2.80$ speedup if compared to the running time of 1 machine. Inspecting the possible causes indicate that there is a non-negligible overhead when splitting and and using chunks of data smaller then $65/(4\times 4)=4MB$, which corresponds to:
 
-$$ChunkSize = ValidationDataSize/(Number Of Workers \times Number Of Cores)$$
+\begin{center}
+ChunkSize = ValidationDataSize/(Number Of Workers $\times$ Number Of Cores)
+\end{center}
+
 
 \begin{center}
  \begin{tabular}{||c c ||} 
@@ -239,9 +242,9 @@ $Speed up(1,10) = 2.92$
 
 Small scale machine learning proved to be possible on a commodity laptop, given preprocessed data that had already undergone dimensionality reduction. Utilizing a python framework called SciKit-Learn (sklearn) we were able to train a random forest model on this preprocessed dataset with comparable accuracy. Such results can be seen tabulated below.\\
 
-When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was impractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interrupt training (laptop dieing/hibernating/crashing).\\
+When attempting to perform fitting on the full dataset using sklearn the Jupyter notebook (the environment we were running in) consistently crashed, and never could make forward progress on training. It's easy to speculate that the crashing was due to us trying to load an excessive amount of data into memory, which caused Jupyter to crash. Running natively in a single python process, we found still that it was impractical to load the entire dataset at once, as by the time it was loaded a significant amount of time had passed and in that time there was a nonzero chance that something could interrupt training (laptop dying/hibernating/crashing).\\
 
-To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifier and developed a tool on top of sklearn to partition the dataset and create separate files for each tree in the forest, trained each tree separately, then assembled them into an ensemble classifier by manipulating some python internals of sklearn. This approach differed from the intrinsic behavior of sklearn by constraining the size of the active set of RAM on the machine, having only one active dataset and tree at any time. Our approach vigorously checkpoints, leaving little to be lost in case of a fault, but we don't believe that this approach is generalizable to all approaches and algorithms (and requires annoying manual instrumentation) so your milage may vary.
+To be able to train a large classifier without blowing out the RAM capacity of our machine, we leveraged the ensemble nature of the random forest classifier and developed a tool on top of sklearn to partition the dataset and create separate files for each tree in the forest, trained each tree separately, then assembled them into an ensemble classifier by manipulating some python internals of sklearn. This approach differed from the intrinsic behavior of sklearn by constraining the size of the active set of RAM on the machine, having only one active dataset and tree at any time. Our approach vigorously checkpoints, leaving little to be lost in case of a fault, but we don't believe that this approach is generalizable to all approaches and algorithms (and requires annoying manual instrumentation) so your mileage may vary.
 
 \begin{table}[h!]
 \centering
@@ -257,6 +260,21 @@ KNN & 0  & 0 \\
 \hline
  \end{tabular}
  \caption{Comparison of Models on Single Machine using Preprocessed Dataset}
+ \label{tab:accuracy-comparison}
+\end{table}
+
+\begin{table}[h!]
+\centering
+ \begin{tabular}{||c c c c c||} 
+ \hline
+Model & Run time (mins) & \# Trees & Max Depth & Accuracy \\ [0.5ex] 
+ \hline\hline
+Random Forest (Single Machine) & 75.8  & 50 & 15 & .99767   \\[1ex] 
+ \hline
+ Random Forest (Parallel) & 52.4  & 50 & 15 & 0.99646 \\
+\hline
+ \end{tabular}
+ \caption{Comparison of Random Forest Run on Single Machine vs Parallel Design using Full Dataset}
  \label{tab:accuracy-comparison}
 \end{table}
 
