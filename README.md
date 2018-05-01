@@ -2,9 +2,9 @@
 This repo contains the analysis, report, source code and scripts for the final project. Built using Apache Maven, Apache Spark + MLlib, Jupyter Notebooks and python.
 
 ## Project Information
-* Report: /report
+* Report: Chenphang-Asha-Dutile-Emily-Otenti-Nate-Sweeney-Tristan-report
 * Raw Train/Test Data: https://drive.google.com/drive/u/1/folders/1EJBgJFmp-FQf2czw9LGImoOhEO2OvOoo
-* Our processed Data: https://drive.google.com/drive/u/1/folders/1v6--KV2CVjHcMLXXl4Q_9MXyeTgPna-T (pre-proc-data.zip)
+* Our processed Data: https://drive.google.com/drive/u/1/folders/1v6--KV2CVjHcMLXXl4Q_9MXyeTgPna-T (pre-proc-data.zip) - for notebook runs, unzip pre-proc-data to projectroot/data/ (create folders for train test and validation). Smaller subsets of the data can also be found in this drive.
 
 ### Project Structure
 
@@ -28,9 +28,10 @@ This repo contains the analysis, report, source code and scripts for the final p
 Files:
 1. convertCsvToImg.py: given a path to oa data file (i.e. ./convertCsvToImg.py L6_1_965381.csv),the output is in text PGM (an image format). The output path is hardcoded in the file.
 2. src/main/scala - Apache Spark / Scala (model training and prediction)
-3. notebooks/ - Jupyter Notebooks
-4. img-output - image output from notebooks visualization
-5. data - small input data for testing and preprocessing data zip
+3. src/main/java - for accuracy scoring
+4. notebooks/ - Jupyter Notebooks
+5. img-output - image output from notebooks visualization
+6. data - small input data for testing and preprocessing data zip
 
 ### Result comparison
 To count the difference between 2 files:
